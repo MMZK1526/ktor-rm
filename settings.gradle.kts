@@ -1,1 +1,1 @@
-rootProject.name = "com.example.ktor-rm"
+rootProject.name = "mmzk.rm.ktor-rm"
