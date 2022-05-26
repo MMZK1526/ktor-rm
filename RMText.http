@@ -1,0 +1,22 @@
+POST http://127.0.0.1:8080/encode
+Content-Type: application/json
+
+{
+  "args": []
+}
+
+###
+POST http://127.0.0.1:8080/encode
+Content-Type: application/json
+
+{
+  "args": [0, 1]
+}
+
+###
+POST http://127.0.0.1:8080/encode
+Content-Type: application/json
+
+{
+  "args": [3, 5, 2]
+}
