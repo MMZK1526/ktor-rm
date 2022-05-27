@@ -1,4 +1,8 @@
-POST http://127.0.0.1:8080/encode
+###
+GET https://ktor-rm.herokuapp.com/
+
+###
+POST https://ktor-rm.herokuapp.com/encode
 Content-Type: application/json
 
 {
