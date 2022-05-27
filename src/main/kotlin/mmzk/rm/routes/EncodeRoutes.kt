@@ -13,7 +13,7 @@ import mmzk.rm.utilities.getOS
 
 private val mmzkrm = when (getOS()) {
     OS.WINDOWS -> null
-    OS.LINUX -> null
+    OS.LINUX -> ShellLocation.CURRENT_WORKING.resolve("assets/mmzkrm/linux/")
     OS.MAC -> ShellLocation.CURRENT_WORKING.resolve("assets/mmzkrm/mac/")
     OS.SOLARIS -> null
     OS.OTHER -> null
