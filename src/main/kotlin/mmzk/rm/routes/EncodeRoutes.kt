@@ -10,6 +10,9 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import mmzk.rm.utilities.OS
 import mmzk.rm.utilities.getOS
+import kotlin.io.path.deleteIfExists
+import kotlin.io.path.pathString
+import kotlin.io.path.writeText
 
 private val mmzkrm = when (getOS()) {
     OS.WINDOWS -> null
@@ -24,14 +27,21 @@ fun Route.encodeRouting() {
         post {
             try {
                 val rm = call.receive<RegisterMachine>()
-                val output =
-                    mmzkrm?.let { shellRun("./mmzkrm", listOf("-e").plus(rm.args.map { it.toString() }), mmzkrm) }
-                        ?: return@post call.respondText(
-                            "Unsupported server OS!",
-                            status = HttpStatusCode.InternalServerError
-                        )
+                val output = if (rm.code == null) {
+                    mmzkrm?.let { shellRun("./mmzkrm", listOf("-j", "-e").plus(rm.args.map { it.toString() }), mmzkrm) }
+                } else {
+                    val file = kotlin.io.path.createTempFile(suffix = ".mmzk")
+                    file.writeText(rm.code)
+                    val output = mmzkrm?.let { shellRun("./mmzkrm", listOf("-j", "-e", file.pathString), mmzkrm) }
+                    file.deleteIfExists()
+                    output
+                } ?: return@post call.respondText(
+                    "Unsupported server OS!", status = HttpStatusCode.InternalServerError
+                )
 
-                call.respondText(output, status = HttpStatusCode.OK)
+                call.respondText(
+                    output, status = HttpStatusCode.OK
+                )
             } catch (e: Exception) {
                 call.respondText("${e.javaClass.kotlin}: ${e.message}", status = HttpStatusCode.InternalServerError)
             }
