@@ -24,3 +24,11 @@ Content-Type: application/json
 {
   "args": [3, 5, 2]
 }
+
+###
+POST https://ktor-rm.herokuapp.com/encode
+Content-Type: application/json
+
+{
+  "code": "1- 1 2\n0+ 0\n"
+}
