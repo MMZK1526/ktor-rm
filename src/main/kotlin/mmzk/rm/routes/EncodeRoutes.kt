@@ -8,6 +8,8 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.json.Json
+import mmzk.rm.EncodeResponse
 import mmzk.rm.utilities.OS
 import mmzk.rm.utilities.getOS
 import kotlin.io.path.deleteIfExists
@@ -40,7 +42,12 @@ fun Route.encodeRouting() {
                 )
 
                 call.respondText(
-                    output, status = HttpStatusCode.OK
+                    output,
+                    status = if (Json.decodeFromString(
+                            EncodeResponse.serializer(),
+                            output
+                        ).hasError
+                    ) HttpStatusCode.BadRequest else HttpStatusCode.OK
                 )
             } catch (e: Exception) {
                 call.respondText("${e.javaClass.kotlin}: ${e.message}", status = HttpStatusCode.InternalServerError)

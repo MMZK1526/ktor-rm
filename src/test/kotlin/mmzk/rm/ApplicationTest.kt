@@ -74,7 +74,7 @@ class ApplicationTest {
             contentType(ContentType.Application.Json)
             setBody(RegisterMachine(code = "FOOBAR"))
         }.apply {
-            assertEquals(HttpStatusCode.OK, status)
+            assertEquals(HttpStatusCode.BadRequest, status)
             val data = Json.decodeFromString(EncodeResponse.serializer(), bodyAsText())
             assertTrue(data.hasError)
         }
