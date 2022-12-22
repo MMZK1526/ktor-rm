@@ -19,7 +19,14 @@ import kotlin.io.path.writeText
 private val mmzkrm = when (getOS()) {
     OS.WINDOWS -> null
     OS.LINUX -> ShellLocation.CURRENT_WORKING.resolve("assets/mmzkrm/linux/")
-    OS.MAC -> ShellLocation.CURRENT_WORKING.resolve("assets/mmzkrm/mac/")
+    OS.MAC -> run {
+        val arch = System.getProperty("os.arch")
+        when {
+            arch.contains("aarch") -> ShellLocation.CURRENT_WORKING.resolve("assets/mmzkrm/mac/apple/")
+            arch.contains("x86") -> ShellLocation.CURRENT_WORKING.resolve("assets/mmzkrm/mac/intel/")
+            else -> null
+        }
+    }
     OS.SOLARIS -> null
     OS.OTHER -> null
 }
