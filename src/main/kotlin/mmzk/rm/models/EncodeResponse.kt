@@ -1,4 +1,4 @@
-package mmzk.rm
+package mmzk.rm.models
 
 import kotlinx.serialization.Serializable
 

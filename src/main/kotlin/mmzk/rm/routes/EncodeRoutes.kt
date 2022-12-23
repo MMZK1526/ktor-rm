@@ -1,7 +1,6 @@
 package mmzk.rm.routes
 
-import mmzk.rm.models.RegisterMachine
-import com.lordcodes.turtle.ShellLocation
+import mmzk.rm.models.EncodeRequest
 import com.lordcodes.turtle.shellRun
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -9,39 +8,22 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
-import mmzk.rm.EncodeResponse
-import mmzk.rm.utilities.OS
-import mmzk.rm.utilities.getOS
+import mmzk.rm.models.EncodeResponse
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.pathString
 import kotlin.io.path.writeText
-
-private val mmzkrm = when (getOS()) {
-    OS.WINDOWS -> null
-    OS.LINUX -> ShellLocation.CURRENT_WORKING.resolve("assets/mmzkrm/linux/")
-    OS.MAC -> run {
-        val arch = System.getProperty("os.arch")
-        when {
-            arch.contains("aarch") -> ShellLocation.CURRENT_WORKING.resolve("assets/mmzkrm/mac/apple/")
-            arch.contains("x86") -> ShellLocation.CURRENT_WORKING.resolve("assets/mmzkrm/mac/intel/")
-            else -> null
-        }
-    }
-    OS.SOLARIS -> null
-    OS.OTHER -> null
-}
 
 fun Route.encodeRouting() {
     route("/encode") {
         post {
             try {
-                val rm = call.receive<RegisterMachine>()
+                val rm = call.receive<EncodeRequest>()
                 val output = if (rm.code == null) {
-                    mmzkrm?.let { shellRun("./mmzkrm", listOf("-j", "-e").plus(rm.args.map { it.toString() }), mmzkrm) }
+                    MMZKRM.path?.let { shellRun("./mmzkrm", listOf("-j", "-e").plus(rm.args.map { arg -> arg.toString() }), it) }
                 } else {
                     val file = kotlin.io.path.createTempFile(suffix = ".mmzk")
                     file.writeText(rm.code)
-                    val output = mmzkrm?.let { shellRun("./mmzkrm", listOf("-j", "-e", file.pathString), mmzkrm) }
+                    val output = MMZKRM.path?.let { shellRun("./mmzkrm", listOf("-j", "-e", file.pathString), it) }
                     file.deleteIfExists()
                     output
                 } ?: return@post call.respondText(

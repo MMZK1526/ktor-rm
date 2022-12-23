@@ -1,13 +1,17 @@
 package mmzk.rm
 
 import io.ktor.client.plugins.contentnegotiation.*
-import mmzk.rm.models.RegisterMachine
+import mmzk.rm.models.EncodeRequest
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
+import mmzk.rm.models.DecodeResponse
+import mmzk.rm.models.EncodeNum
+import mmzk.rm.models.EncodeResponse
 import kotlin.test.*
 
 class ApplicationTest {
@@ -64,7 +68,7 @@ class ApplicationTest {
     )
 
     @Test
-    fun canDetectSyntaxError() = testApplication {
+    fun canDetectEncodeSyntaxError() = testApplication {
         val client = createClient {
             this.install(ContentNegotiation) {
                 json()
@@ -72,10 +76,23 @@ class ApplicationTest {
         }
         client.post("/encode") {
             contentType(ContentType.Application.Json)
-            setBody(RegisterMachine(code = "FOOBAR"))
+            setBody(EncodeRequest(code = "FOOBAR"))
         }.apply {
             assertEquals(HttpStatusCode.BadRequest, status)
             val data = Json.decodeFromString(EncodeResponse.serializer(), bodyAsText())
+            assertTrue(data.hasError)
+        }
+    }
+
+    @Test
+    fun canDetectDecodeSyntaxError() = testApplication {
+        val client = createClient {}
+        client.post("/decode") {
+            contentType(ContentType.Application.Json)
+            setBody("-1919810")
+        }.apply {
+//            assertEquals(HttpStatusCode.BadRequest, status)
+            val data = Json.decodeFromString(DecodeResponse.serializer(), bodyAsText())
             assertTrue(data.hasError)
         }
     }
@@ -88,7 +105,7 @@ class ApplicationTest {
         }
         client.post("/encode") {
             contentType(ContentType.Application.Json)
-            setBody(RegisterMachine(args = list))
+            setBody(EncodeRequest(args = list))
         }.apply {
             assertEquals(HttpStatusCode.OK, status)
             val data = Json.decodeFromString(EncodeResponse.serializer(), bodyAsText())
@@ -105,7 +122,7 @@ class ApplicationTest {
         }
         client.post("/encode") {
             contentType(ContentType.Application.Json)
-            setBody(RegisterMachine(code = code))
+            setBody(EncodeRequest(code = code))
         }.apply {
             assertEquals(HttpStatusCode.OK, status)
             val data = Json.decodeFromString(EncodeResponse.serializer(), bodyAsText())
