@@ -17,7 +17,7 @@ fun Route.decodeRouting() {
                 print(value)
                 val output = MMZKRM.path?.let {
                     shellRun("./mmzkrm", listOf("-j", "-d", value), it)
-                }?.replace("\\\\(?=\\d\\d\\d)".toRegex(), "\\\\u0") ?: return@post call.respondText(
+                } ?: return@post call.respondText(
                     "Unsupported server OS!", status = HttpStatusCode.InternalServerError
                 )
                 println(output)
