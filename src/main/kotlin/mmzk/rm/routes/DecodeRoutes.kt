@@ -20,7 +20,6 @@ fun Route.decodeRouting() {
                 } ?: return@post call.respondText(
                     "Unsupported server OS!", status = HttpStatusCode.InternalServerError
                 )
-                println(output)
 
                 call.respondText(
                     output,

@@ -1,6 +1,7 @@
 package mmzk.rm
 
 import io.ktor.server.application.*
+import mmzk.rm.plugins.configureHTTP
 import mmzk.rm.plugins.configureRouting
 import mmzk.rm.plugins.configureSerialization
 
@@ -11,4 +12,5 @@ fun main(args: Array<String>): Unit =
 fun Application.module() {
     configureRouting()
     configureSerialization()
+    configureHTTP()
 }
