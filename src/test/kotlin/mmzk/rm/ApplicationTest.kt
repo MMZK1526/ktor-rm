@@ -107,7 +107,7 @@ class ApplicationTest {
             contentType(ContentType.Application.Json)
             setBody("-1919810")
         }.apply {
-//            assertEquals(HttpStatusCode.BadRequest, status)
+            assertEquals(HttpStatusCode.BadRequest, status)
             val data = Json.decodeFromString(DecodeResponse.serializer(), bodyAsText())
             assertTrue(data.hasError)
         }

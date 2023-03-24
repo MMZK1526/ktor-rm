@@ -14,13 +14,12 @@ fun Route.decodeRouting() {
         post {
             try {
                 val value = call.receiveText()
-                print(value)
                 val output = MMZKRM.path?.let {
                     shellRun("./mmzkrm", listOf("-j", "-d", value), it)
-                } ?: return@post call.respondText(
-                    "Unsupported server OS!", status = HttpStatusCode.InternalServerError
+                } ?: return@post call.respond(
+                    status = HttpStatusCode.BadRequest,
+                    DecodeResponse(hasError = true, errors = listOf("Unsupported server OS!"))
                 )
-
                 call.respondText(
                     output,
                     status = if (Json.decodeFromString(
@@ -30,7 +29,10 @@ fun Route.decodeRouting() {
                     ) HttpStatusCode.BadRequest else HttpStatusCode.OK
                 )
             } catch (e: Exception) {
-                call.respondText("${e.javaClass.kotlin}: ${e.message}", status = HttpStatusCode.InternalServerError)
+                return@post call.respond(
+                    status = HttpStatusCode.InternalServerError,
+                    DecodeResponse(hasError = true, errors = listOf("$e"))
+                )
             }
         }
     }

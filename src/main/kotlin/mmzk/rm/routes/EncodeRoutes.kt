@@ -17,19 +17,32 @@ fun Route.encodeRouting() {
     route("/encode") {
         post {
             try {
-                val rm = call.receive<EncodeRequest>()
+                val rm = try {
+                    call.receive<EncodeRequest>()
+                } catch (e: Exception) {
+                    return@post call.respond(
+                        status = HttpStatusCode.BadRequest,
+                        EncodeResponse(hasError = true, errors = listOf("$e"))
+                    )
+                }
                 val output = if (rm.code == null) {
-                    MMZKRM.path?.let { shellRun("./mmzkrm", listOf("-j", "-e").plus(rm.args.map { arg -> arg.toString() }), it) }
+                    MMZKRM.path?.let {
+                        shellRun(
+                            "./mmzkrm",
+                            listOf("-j", "-e").plus(rm.args.map { arg -> arg.toString() }),
+                            it
+                        )
+                    }
                 } else {
                     val file = kotlin.io.path.createTempFile(suffix = ".mmzk")
                     file.writeText(rm.code)
                     val output = MMZKRM.path?.let { shellRun("./mmzkrm", listOf("-j", "-e", file.pathString), it) }
                     file.deleteIfExists()
                     output
-                } ?: return@post call.respondText(
-                    "Unsupported server OS!", status = HttpStatusCode.InternalServerError
+                } ?: return@post call.respond(
+                    status = HttpStatusCode.BadRequest,
+                    EncodeResponse(hasError = true, errors = listOf("Unsupported server OS!"))
                 )
-
                 call.respondText(
                     output,
                     status = if (Json.decodeFromString(
@@ -39,7 +52,10 @@ fun Route.encodeRouting() {
                     ) HttpStatusCode.BadRequest else HttpStatusCode.OK
                 )
             } catch (e: Exception) {
-                call.respondText("${e.javaClass.kotlin}: ${e.message}", status = HttpStatusCode.InternalServerError)
+                return@post call.respond(
+                    status = HttpStatusCode.InternalServerError,
+                    EncodeResponse(hasError = true, errors = listOf("$e"))
+                )
             }
         }
     }
