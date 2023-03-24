@@ -5,6 +5,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import mmzk.rm.routes.decodeRouting
 import mmzk.rm.routes.encodeRouting
+import mmzk.rm.routes.simulationRouting
 
 fun Application.configureRouting() {
     routing {
@@ -13,5 +14,6 @@ fun Application.configureRouting() {
         }
         encodeRouting()
         decodeRouting()
+        simulationRouting()
     }
 }

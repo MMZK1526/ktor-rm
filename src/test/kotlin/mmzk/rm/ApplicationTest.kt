@@ -1,16 +1,13 @@
 package mmzk.rm
 
 import io.ktor.client.plugins.contentnegotiation.*
-import mmzk.rm.models.EncodeRequest
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
-import mmzk.rm.models.DecodeResponse
-import mmzk.rm.models.EncodeNum
-import mmzk.rm.models.EncodeResponse
+import mmzk.rm.models.*
 import kotlin.test.*
 
 class ApplicationTest {
@@ -150,6 +147,35 @@ class ApplicationTest {
         }
     }
 
+    @Test
+    fun canAddFiveToSeven() = testSimulate(
+        code = """
+            L0: R1- 1 2
+            L1: R0+ 0
+            L2: R2- 3 4
+            L3: R0+ 2
+            L4: ARRÊT
+        """.trimIndent(),
+        args = listOf("7", "5"),
+        expectedSteps = 27,
+        expectedRegValues = listOf("12", "0", "0")
+    )
+
+    @Test
+    fun canAddFiveToSevenToTen() = testSimulate(
+        code = """
+            L0: R1- 1 2
+            L1: R0+ 0
+            L2: R2- 3 4
+            L3: R0+ 2
+            L4: ARRÊT
+        """.trimIndent(),
+        args = listOf("10", "7", "5"),
+        startFromR0 = true,
+        expectedSteps = 27,
+        expectedRegValues = listOf("22", "0", "0")
+    )
+
     private fun testEncodeList(list: List<String>, expected: EncodeNum) = testApplication {
         val client = createClient {
             this.install(ContentNegotiation) {
@@ -197,6 +223,32 @@ class ApplicationTest {
                 assertEquals(data.decodeToRM, expectedRM)
                 assertEquals(data.decodeToList, expectedList)
                 assertEquals(data.decodeToPair, expectedPair)
+            }
+        }
+
+    private fun testSimulate(
+        code: String,
+        args: List<String>,
+        startFromR0: Boolean = false,
+        expectedSteps: Int,
+        expectedRegValues: List<String>
+    ) =
+        testApplication {
+            val client = createClient {
+                this.install(ContentNegotiation) {
+                    json()
+                }
+            }
+            client.post("/simulate") {
+                contentType(ContentType.Application.Json)
+                setBody(SimulateRequest(code = code, args = args, startFromR0 = startFromR0))
+            }.apply {
+                println(Json.decodeFromString(SimulateResponse.serializer(), bodyAsText()))
+                assertEquals(HttpStatusCode.OK, status)
+                val data = Json.decodeFromString(SimulateResponse.serializer(), bodyAsText())
+                assertFalse(data.hasError)
+                assertEquals(expectedSteps, data.steps)
+                assertEquals(expectedRegValues, data.registerValues)
             }
         }
 }
