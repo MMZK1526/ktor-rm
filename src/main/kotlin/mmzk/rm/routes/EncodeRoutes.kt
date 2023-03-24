@@ -26,10 +26,11 @@ fun Route.encodeRouting() {
                     )
                 }
                 val output = if (rm.code == null) {
+                    println(listOf("-j", "-e").plus(rm.args))
                     MMZKRM.path?.let {
                         shellRun(
                             "./mmzkrm",
-                            listOf("-j", "-e").plus(rm.args.map { arg -> arg.toString() }),
+                            listOf("-j", "-e").plus(rm.args),
                             it
                         )
                     }
