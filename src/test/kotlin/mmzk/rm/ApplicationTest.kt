@@ -157,7 +157,7 @@ class ApplicationTest {
             L4: ARRÊT
         """.trimIndent(),
         args = listOf("7", "5"),
-        expectedSteps = 27,
+        expectedSteps = "27",
         expectedRegValues = listOf("12", "0", "0")
     )
 
@@ -172,7 +172,7 @@ class ApplicationTest {
         """.trimIndent(),
         args = listOf("10", "7", "5"),
         startFromR0 = true,
-        expectedSteps = 27,
+        expectedSteps = "27",
         expectedRegValues = listOf("22", "0", "0")
     )
 
@@ -230,7 +230,7 @@ class ApplicationTest {
         code: String,
         args: List<String>,
         startFromR0: Boolean = false,
-        expectedSteps: Int,
+        expectedSteps: String,
         expectedRegValues: List<String>
     ) =
         testApplication {

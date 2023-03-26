@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 data class SimulateResponse(
     val hasError: Boolean,
     val errors: List<String>? = null,
-    val steps: Int? = null,
+    val steps: String? = null,
     val registerValues: List<String> = listOf()
 )
