@@ -30,7 +30,7 @@ class MMZKRM {
                     .redirectOutput(ProcessBuilder.Redirect.PIPE)
                     .redirectError(ProcessBuilder.Redirect.PIPE)
                 val process = processBuilder
-                    .command(listOf("timeout", "1", "./mmzkrm") + arguments)
+                    .command(listOf("timeout", "10", "./mmzkrm") + arguments)
                     .start()
                 process.waitFor(15, TimeUnit.SECONDS)
                 if (process.exitValue() != 0) {
