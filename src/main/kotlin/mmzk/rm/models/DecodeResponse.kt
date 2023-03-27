@@ -8,5 +8,6 @@ data class DecodeResponse(
     val errors: List<String>? = null,
     val decodeToPair: List<String>? = null,
     val decodeToList: List<String>? = null,
+    val decodeToLine: String? = null,
     val decodeToRM: String? = null,
 )
