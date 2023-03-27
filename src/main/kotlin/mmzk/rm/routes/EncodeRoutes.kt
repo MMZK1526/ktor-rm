@@ -1,7 +1,6 @@
 package mmzk.rm.routes
 
 import mmzk.rm.models.EncodeRequest
-import com.lordcodes.turtle.shellRun
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -16,6 +15,12 @@ import kotlin.io.path.writeText
 fun Route.encodeRouting() {
     route("/encode") {
         post {
+            if (MMZKRM.path == null) {
+                return@post call.respond(
+                    status = HttpStatusCode.InternalServerError,
+                    EncodeResponse(hasError = true, errors = listOf("Unsupported Server OS!"))
+                )
+            }
             try {
                 val rm = try {
                     call.receive<EncodeRequest>()
@@ -26,23 +31,34 @@ fun Route.encodeRouting() {
                     )
                 }
                 val output = if (rm.code == null) {
-                    MMZKRM.path?.let {
-                        shellRun(
-                            "./mmzkrm",
-                            listOf("-j", "-e").plus(rm.args),
-                            it
+                    try {
+                        MMZKRM.run(listOf("-j", "-e").plus(rm.args))
+                    } catch (e: Exception) {
+                        return@post call.respond(
+                            status = HttpStatusCode.InternalServerError,
+                            EncodeResponse(hasError = true, errors = listOf("Internal Error: $e"))
                         )
-                    }
+                    } ?: return@post call.respond(
+                        status = HttpStatusCode.RequestTimeout,
+                        EncodeResponse(hasError = true, errors = listOf("The request takes too long!"))
+                    )
                 } else {
                     val file = kotlin.io.path.createTempFile(suffix = ".mmzk")
                     file.writeText(rm.code)
-                    val output = MMZKRM.path?.let { shellRun("./mmzkrm", listOf("-j", "-e", file.pathString), it) }
+                    val output = try {
+                        MMZKRM.run(listOf("-j", "-e", file.pathString))
+                    } catch (e: Exception) {
+                        return@post call.respond(
+                            status = HttpStatusCode.InternalServerError,
+                            EncodeResponse(hasError = true, errors = listOf("Internal Error: $e"))
+                        )
+                    } ?: return@post call.respond(
+                        status = HttpStatusCode.RequestTimeout,
+                        EncodeResponse(hasError = true, errors = listOf("The request takes too long!"))
+                    )
                     file.deleteIfExists()
                     output
-                } ?: return@post call.respond(
-                    status = HttpStatusCode.BadRequest,
-                    EncodeResponse(hasError = true, errors = listOf("Unsupported server OS!"))
-                )
+                }
                 call.respondText(
                     output,
                     status = if (Json.decodeFromString(

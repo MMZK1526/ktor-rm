@@ -1,6 +1,5 @@
 package mmzk.rm.routes
 
-import com.lordcodes.turtle.shellRun
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -12,13 +11,24 @@ import mmzk.rm.models.DecodeResponse
 fun Route.decodeRouting() {
     route("/decode") {
         post {
+            if (MMZKRM.path == null) {
+                return@post call.respond(
+                    status = HttpStatusCode.InternalServerError,
+                    DecodeResponse(hasError = true, errors = listOf("Unsupported Server OS!"))
+                )
+            }
             try {
                 val value = call.receiveText()
-                val output = MMZKRM.path?.let {
-                    shellRun("./mmzkrm", listOf("-j", "-d", value), it)
+                val output = try {
+                    MMZKRM.run(listOf("-j", "-d", value))
+                } catch (e: Exception) {
+                    return@post call.respond(
+                        status = HttpStatusCode.InternalServerError,
+                        DecodeResponse(hasError = true, errors = listOf("Internal Error: $e"))
+                    )
                 } ?: return@post call.respond(
-                    status = HttpStatusCode.BadRequest,
-                    DecodeResponse(hasError = true, errors = listOf("Unsupported server OS!"))
+                    status = HttpStatusCode.RequestTimeout,
+                    DecodeResponse(hasError = true, errors = listOf("The request takes too long!"))
                 )
                 call.respondText(
                     output,

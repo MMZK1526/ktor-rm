@@ -1,13 +1,11 @@
 package mmzk.rm.routes
 
-import com.lordcodes.turtle.shellRun
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
-import mmzk.rm.models.EncodeResponse
 import mmzk.rm.models.SimulateRequest
 import mmzk.rm.models.SimulateResponse
 import kotlin.io.path.deleteIfExists
@@ -17,6 +15,12 @@ import kotlin.io.path.writeText
 fun Route.simulationRouting() {
     route("/simulate") {
         post {
+            if (MMZKRM.path == null) {
+                return@post call.respond(
+                    status = HttpStatusCode.InternalServerError,
+                    SimulateResponse(hasError = true, errors = listOf("Unsupported Server OS!"))
+                )
+            }
             try {
                 val rm = try {
                     call.receive<SimulateRequest>()
@@ -34,15 +38,20 @@ fun Route.simulationRouting() {
                         listOf("-j", "-i", file.pathString).plus(rm.args)
                     else
                         listOf("-j", file.pathString).plus(rm.args)
-                    val output = MMZKRM.path?.let {
-                        shellRun("./mmzkrm", args, it)
-                    }
+                    val output = try {
+                        MMZKRM.run(args)
+                    } catch (e: Exception) {
+                        return@post call.respond(
+                            status = HttpStatusCode.InternalServerError,
+                            SimulateResponse(hasError = true, errors = listOf("Internal Error: $e"))
+                        )
+                    } ?: return@post call.respond(
+                        status = HttpStatusCode.RequestTimeout,
+                        SimulateResponse(hasError = true, errors = listOf("The request takes too long!"))
+                    )
                     file.deleteIfExists()
                     output
-                } ?: return@post call.respond(
-                    status = HttpStatusCode.BadRequest,
-                    SimulateResponse(hasError = true, errors = listOf("Unsupported server OS!"))
-                )
+                }
 
                 call.respondText(
                     output,
@@ -55,7 +64,7 @@ fun Route.simulationRouting() {
             } catch (e: Exception) {
                 return@post call.respond(
                     status = HttpStatusCode.InternalServerError,
-                    EncodeResponse(hasError = true, errors = listOf("$e"))
+                    SimulateResponse(hasError = true, errors = listOf("$e"))
                 )
             }
         }
