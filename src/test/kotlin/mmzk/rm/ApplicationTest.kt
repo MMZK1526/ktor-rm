@@ -246,7 +246,6 @@ class ApplicationTest {
                 contentType(ContentType.Application.Json)
                 setBody(SimulateRequest(code = code, args = args, startFromR0 = startFromR0))
             }.apply {
-                println(Json.decodeFromString(SimulateResponse.serializer(), bodyAsText()))
                 assertEquals(HttpStatusCode.OK, status)
                 val data = Json.decodeFromString(SimulateResponse.serializer(), bodyAsText())
                 assertFalse(data.hasError)

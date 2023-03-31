@@ -34,10 +34,14 @@ fun Route.simulationRouting() {
                 val output = run {
                     val file = kotlin.io.path.createTempFile(suffix = ".mmzk")
                     file.writeText(rm.code)
-                    val args = if (rm.startFromR0)
-                        listOf("-j", "-i", file.pathString).plus(rm.args)
-                    else
-                        listOf("-j", file.pathString).plus(rm.args)
+                    var args = listOf("-j")
+                    if (rm.startFromR0) {
+                        args = args + listOf("-i")
+                    }
+                    if (rm.showSteps != null) {
+                        args = args + listOf("-s${rm.showSteps}")
+                    }
+                    args = args + listOf(file.pathString) + rm.args
                     val output = try {
                         MMZKRM.run(args)
                     } catch (e: Exception) {
