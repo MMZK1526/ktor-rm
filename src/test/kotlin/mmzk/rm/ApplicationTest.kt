@@ -104,7 +104,7 @@ class ApplicationTest {
                 json()
             }
         }
-        client.post("/encode") {
+        client.put("/encode") {
             contentType(ContentType.Application.Json)
             setBody(EncodeRequest(code = "FOOBAR"))
         }.apply {
@@ -138,7 +138,7 @@ class ApplicationTest {
     @Test
     fun canDetectDecodeSyntaxError() = testApplication {
         val client = createClient {}
-        client.post("/decode") {
+        client.put("/decode") {
             contentType(ContentType.Application.Json)
             setBody("-1919810")
         }.apply {
@@ -183,7 +183,7 @@ class ApplicationTest {
                 json()
             }
         }
-        client.post("/encode") {
+        client.put("/encode") {
             contentType(ContentType.Application.Json)
             setBody(EncodeRequest(args = list))
         }.apply {
@@ -200,7 +200,7 @@ class ApplicationTest {
                 json()
             }
         }
-        client.post("/encode") {
+        client.put("/encode") {
             contentType(ContentType.Application.Json)
             setBody(EncodeRequest(code = code))
         }.apply {
@@ -215,7 +215,7 @@ class ApplicationTest {
     private fun testDecode(num: String, expectedPair: List<String>?, expectedList: List<String>, expectedLine: String, expectedRM: String) =
         testApplication {
             val client = createClient {}
-            client.post("/decode") {
+            client.put("/decode") {
                 setBody(num)
             }.apply {
                 assertEquals(HttpStatusCode.OK, status)
@@ -242,7 +242,7 @@ class ApplicationTest {
                     json()
                 }
             }
-            client.post("/simulate") {
+            client.put("/simulate") {
                 contentType(ContentType.Application.Json)
                 setBody(SimulateRequest(code = code, args = args, startFromR0 = startFromR0))
             }.apply {
